@@ -35,17 +35,17 @@ last_page = last_page.slice(last_page.length - 1)
 
 #Extract data from page
     page = Nokogiri::HTML(open(uri)).at('.content-box')
-    @product = page.at_css('#product_family_heading').inner_text
+    @product = page.xpath('//*[(@id = "product_family_heading")]').inner_text
     dir = BASE_DIR + @product.delete('/')
     Dir.mkdir(dir) unless File.exists?(dir)
     CSV.open(dir + '/output.csv', 'wb') do |csv|
       csv << CSV_HEADER
-      @image = page.at('._img_zoom').attr('src').delete("\t\n")
-      page.search('li.product').each do |item|
+      @image = page.xpath('//*[contains(concat( " ", @class, " " ), concat( " ", "_img_zoom", " " ))]/@src')
+      page.xpath('//li[contains(concat( " ", @class, " " ), concat( " ", "product", " " ))]').each do |item|
         @items = {
             name: @product,
-            filling: item.search('div.title')[0].text.delete("\t\n"),
-            price: item.search('div.ours span')[0].text.delete("\t\n"),
+            filling: item.xpath('//*[contains(concat( " ", @class, " " ), concat( " ", "title", " " ))]')[0].text.delete("\t\n"),
+            price: item.search('div.ours span')[0].text.delete("\t\n"), #Here!
             picture: @image,
             delivery: item.search('.in-stock').inner_text.delete("\t\n"),
             code: item.at('a strong').text,
