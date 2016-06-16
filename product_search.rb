@@ -20,38 +20,37 @@ CSV_HEADER = %w(
             Доставка
             Код
             )
+CSV.open(BASE_DIR + 'output.csv', 'wb') do |csv|
+  csv << CSV_HEADER
+  get_page = Nokogiri::HTML(open (CATEGORY_URL)).at('.pagination')
+  last_page = get_page.css('a').last.attr('href')
+  last_page = last_page.slice(last_page.length - 1)
 
-get_page = Nokogiri::HTML(open (CATEGORY_URL)).at('.pagination')
-last_page = get_page.css('a').last.attr('href')
-last_page = last_page.slice(last_page.length - 1)
-
-(1..last_page.to_i).each do |page|
+  (1..last_page.to_i).each do |page|
 # Find links
-  get_link = Nokogiri::HTML(open (CATEGORY_URL + PAGINATION + page.to_s)).at('.families-list')
-  get_link.css('a.call_to_action._secondary._medium.view_details').each do |link|
-    link_list = link.attr('href')
-    uri = BASE_URL + link_list #our page-link
-    p 'Fetching: ' + uri
+    get_link = Nokogiri::HTML(open (CATEGORY_URL + PAGINATION + page.to_s)).at('.families-list')
+    get_link.css('a.call_to_action._secondary._medium.view_details').each do |link|
+      link_list = link.attr('href')
+      uri = BASE_URL + link_list #our page-link
+      p 'Fetching: ' + uri
 
 #Extract data from page
-    page = Nokogiri::HTML(open(uri)).at('.content-box')
-    @product = page.at_css('#product_family_heading').inner_text
-    dir = BASE_DIR + @product.delete('/')
-    Dir.mkdir(dir) unless File.exists?(dir)
-    CSV.open(dir + '/output.csv', 'wb') do |csv|
-      csv << CSV_HEADER
-      @image = page.at('._img_zoom').attr('src').delete("\t\n")
+      page = Nokogiri::HTML(open(uri)).at('.content-box')
+      product = page.at_css('#product_family_heading').inner_text
+      #dir = BASE_DIR
+      #Dir.mkdir(dir) unless File.exists?(dir)
+      image = page.at('._img_zoom').attr('src').delete("\t\n")
       page.search('li.product').each do |item|
-        @items = {
-            name: @product,
+        items = {
+            name: product,
             filling: item.search('div.title')[0].text.delete("\t\n"),
             price: item.search('div.ours span')[0].text.delete("\t\n"),
-            picture: @image,
+            picture: image,
             delivery: item.search('.in-stock').inner_text.delete("\t\n"),
             code: item.at('a strong').text,
         }
-        csv << @items.values #Data
+        csv << items.values
       end # item
-    end # cvs
-  end # links
-end # page
+    end # link
+  end # page
+end # cvs
