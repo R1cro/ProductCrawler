@@ -35,7 +35,7 @@ class ProductCrawler
   def save_data_to_csv
     CSV.open(BASE_DIR + csv_file_name, 'wb') do |csv|
       csv << CSV_HEADER
-      (1..2).each do |page|
+      (1..find_pages).each do |page|
         p 'Page: #' + page.to_s 
         get_link = Nokogiri::HTML(open (category_url + PAGINATION + page.to_s)).xpath(FAMILIES_LIST_XPATH)
         get_link.xpath(VIEW_DETAILS_XPATH).each do |link|
