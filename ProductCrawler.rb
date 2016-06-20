@@ -16,7 +16,7 @@ class ProductCrawler
   end  
 
   def input_url
-    File.open(url_file).read.split(BASE_URL)
+    File.open(url_file).read.gsub(/\s+/, "").split(BASE_URL)
   end
 
   def category_url
