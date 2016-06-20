@@ -24,10 +24,10 @@ class ProductCrawler
   end
 
   def find_pages
-    pagination = Nokogiri::HTML(open (category_url)).at('.pagination')
+    pagination = Nokogiri::HTML(open (category_url)).xpath(PAGINATION_XPATH)
     page_list = []
-    pagination.css('a').each do |pages|
-      page_list.push (pages.attr('href').match(/page=(\d+)/)[1].to_i)
+    pagination.css(NODE_A).each do |pages|
+      page_list.push (pages.attr(ATTR_HREF).match(/page=(\d+)/)[1].to_i)
     end
     page_list.max
   end
@@ -35,23 +35,23 @@ class ProductCrawler
   def save_data_to_csv
     CSV.open(BASE_DIR + csv_file_name, 'wb') do |csv|
       csv << CSV_HEADER
-      (1..find_pages).each do |page|
+      (1..2).each do |page|
         p 'Page: #' + page.to_s 
-        get_link = Nokogiri::HTML(open (category_url + PAGINATION + page.to_s)).at('.families-list')
-        get_link.css('a.call_to_action._secondary._medium.view_details').each do |link|
-          link_list = link.attr('href')
+        get_link = Nokogiri::HTML(open (category_url + PAGINATION + page.to_s)).xpath(FAMILIES_LIST_XPATH)
+        get_link.xpath(VIEW_DETAILS_XPATH).each do |link|
+          link_list = link.attr(ATTR_HREF)
           p 'Fetching: ' + link_list
           uri = FULL_URL + link_list 
-          page = Nokogiri::HTML(open(uri)).at('.content-box')
-          product = page.at_css('#product_family_heading').inner_text
-          image = page.at('img').attr('src').delete("\t\n")
-          page.search('li.product').each do |item|
+          page = Nokogiri::HTML(open(uri)).xpath(CONTENT_BOX_XPATH)
+          product = page.xpath(PRODUCT_FAMILY_HEADING_XPATH).inner_text
+          image = page.xpath(IMG_XPATH)
+          page.search(PRODUCT_XPATH).each do |item|
             items = {
-                name: product + ' - ' + item.search('div.title')[0].text.delete("\t\n"),
-                price: item.search('div.ours span')[0].text.delete("\t\n"),
+                name: product + ' - ' + item.search(FILLING_TITLE_PATH)[0].text.delete("\t\n"),
+                price: item.search(PRICE_PATH)[0].text.delete("\t\n"),
                 picture: image,
-                delivery: item.search('.in-stock').inner_text.delete("\t\n"),
-                code: item.at('a strong').text,
+                delivery: item.search(DELIVERY_PATH).inner_text.delete("\t\n"),
+                code: item.search(CODE_PATH).text,
             }
             csv << items.values
           end #item
@@ -63,7 +63,5 @@ class ProductCrawler
 end
 
 Dir.mkdir(BASE_DIR) unless File.exists?(BASE_DIR)
-
-
 product_crawler = ProductCrawler.new(ARGV[0], ARGV[1])
 product_crawler.save_data_to_csv
