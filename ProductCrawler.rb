@@ -48,7 +48,7 @@ class ProductCrawler
           page.search(PRODUCT_XPATH).each do |item|
             items = {
                 name: product + ' - ' + item.search(FILLING_TITLE_PATH)[0].text.delete("\t\n"),
-                price: item.search(PRICE_PATH)[0].text.delete("\t\n"),
+                price: item.search(PRICE_PATH)[0].text.delete("£\t\n"),
                 picture: image,
                 delivery: item.search(DELIVERY_PATH).inner_text.delete("\t\n"),
                 code: item.search(CODE_PATH).text,
