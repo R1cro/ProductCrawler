@@ -1,7 +1,5 @@
-require 'rubygems'
 require 'nokogiri'
 require 'open-uri'
-require 'fileutils'
 require 'csv'
 
 require_relative 'conf'
