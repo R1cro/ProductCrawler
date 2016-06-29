@@ -31,7 +31,7 @@ class ProductCrawler
   end
 
   def save_data_to_csv
-    CSV.open(BASE_DIR + csv_file_name, 'wb') do |csv|
+    CSV.open(BASE_DIR + csv_file_name, 'w') do |csv|
       csv << CSV_HEADER
       (1..find_pages).each do |page|
         p 'Page: #' + page.to_s 
